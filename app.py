@@ -7,6 +7,7 @@ from transformers import pipeline
 import streamlit as st
 import time
 import schedule
+from bs4 import BeautifulSoup
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
@@ -66,6 +67,13 @@ def save_data_locally(data, filename="techcrunch_startups.csv"):
     else:
         data.to_csv(filename, index=False)
     print(f"Data saved to {filename}")
+
+# Function to load data
+def load_data(filename="techcrunch_startups.csv"):
+    try:
+        return pd.read_csv(filename)
+    except FileNotFoundError:
+        return pd.DataFrame()
 
 # Function to schedule periodic scraping
 def schedule_scraping():
