@@ -53,9 +53,13 @@ def main():
         if not scraped_data.empty:
             save_data_locally(scraped_data)
             st.success("Data scraped and updated successfully!")
-            st.experimental_rerun()
+            st.session_state["data_updated"] = True  # Set session state to trigger UI refresh
         else:
             st.warning("No new data found.")
+
+    # Check session state and reload data if updated
+    if "data_updated" not in st.session_state:
+        st.session_state["data_updated"] = False
 
     # Load existing data
     data = load_data()
