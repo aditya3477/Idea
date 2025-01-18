@@ -8,6 +8,8 @@ import streamlit as st
 import time
 import schedule
 from bs4 import BeautifulSoup
+import networkx as nx
+import matplotlib.pyplot as plt
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
@@ -75,6 +77,39 @@ def load_data(filename="techcrunch_startups.csv"):
     except FileNotFoundError:
         return pd.DataFrame()
 
+# Summarization agent
+def summarize_text(text):
+    summarizer = pipeline("summarization")
+    try:
+        return summarizer(text, max_length=50, min_length=10, do_sample=False)[0]["summary_text"]
+    except Exception:
+        return "Summary not available."
+
+# Sentiment analysis agent
+def analyze_sentiment(text):
+    sentiment_analyzer = pipeline("sentiment-analysis")
+    try:
+        result = sentiment_analyzer(text)[0]
+        return f"{result['label']} (Confidence: {result['score']:.2f})"
+    except Exception:
+        return "Sentiment analysis failed."
+
+# Knowledge graph agent
+def build_knowledge_graph(data):
+    graph = nx.Graph()
+    for _, row in data.iterrows():
+        graph.add_node(row['title'], type='article', link=row['link'])
+        for keyword in row['title'].split():
+            graph.add_node(keyword, type='keyword')
+            graph.add_edge(row['title'], keyword)
+    return graph
+
+def visualize_knowledge_graph(graph):
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(graph)
+    nx.draw(graph, pos, with_labels=True, node_size=50, font_size=8)
+    plt.show()
+
 # Function to schedule periodic scraping
 def schedule_scraping():
     schedule.every().day.at("10:00").do(lambda: save_data_locally(scrape_techcrunch_rss(pages=5)))
@@ -109,6 +144,21 @@ def main():
     else:
         st.write("### Latest Startups")
         st.dataframe(data)
+
+        # Summarization
+        if st.checkbox("Show Summaries"):
+            data['summary'] = data['title'].apply(summarize_text)
+            st.write(data[['title', 'summary']])
+
+        # Sentiment analysis
+        if st.checkbox("Show Sentiment Analysis"):
+            data['sentiment'] = data['title'].apply(analyze_sentiment)
+            st.write(data[['title', 'sentiment']])
+
+        # Knowledge graph
+        if st.checkbox("Visualize Knowledge Graph"):
+            graph = build_knowledge_graph(data)
+            visualize_knowledge_graph(graph)
 
         # Search functionality
         search_query = st.text_input("Search for a startup:")
