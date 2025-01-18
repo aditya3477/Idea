@@ -1,0 +1,4 @@
+streamlit-app/
+├── app.py               # Main Streamlit app script
+├── techcrunch_startups.csv  # Data file (optional, can be uploaded later)
+├── requirements.txt     # Dependencies for the app
