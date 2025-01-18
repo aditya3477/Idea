@@ -5,3 +5,4 @@ transformers
 schedule
 bs4
 networkx
+matplotlib
