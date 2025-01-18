@@ -10,6 +10,7 @@ import schedule
 from bs4 import BeautifulSoup
 import networkx as nx
 import matplotlib.pyplot as plt
+import torch
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
