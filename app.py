@@ -79,15 +79,17 @@ def load_data(filename="techcrunch_startups.csv"):
 
 # Summarization agent
 def summarize_text(text):
-    summarizer = pipeline("summarization")
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6", revision="a4f8f3e", device=0 if torch.cuda.is_available() else -1)
     try:
-        return summarizer(text, max_length=50, min_length=10, do_sample=False)[0]["summary_text"]
+        input_length = len(text.split())
+        max_length = max(10, min(50, input_length * 2 // 3))  # Adjust max_length based on input length
+        return summarizer(text, max_length=max_length, min_length=max(5, input_length // 3), do_sample=False)[0]["summary_text"]
     except Exception:
         return "Summary not available."
 
 # Sentiment analysis agent
 def analyze_sentiment(text):
-    sentiment_analyzer = pipeline("sentiment-analysis")
+    sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=0 if torch.cuda.is_available() else -1)
     try:
         result = sentiment_analyzer(text)[0]
         return f"{result['label']} (Confidence: {result['score']:.2f})"
