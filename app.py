@@ -5,23 +5,59 @@ import pandas as pd
 import feedparser
 from transformers import pipeline
 import streamlit as st
+import time
+import schedule
 
-# Function to scrape TechCrunch RSS feed
-def scrape_techcrunch_rss():
-    feed_url = "https://techcrunch.com/tag/startups/feed/"
-    feed = feedparser.parse(feed_url)
+# Function to scrape TechCrunch RSS feed with pagination
+def scrape_techcrunch_rss(pages=5):
+    base_url = "https://techcrunch.com/tag/startups/feed/"
     articles = []
 
-    for entry in feed.entries:
-        articles.append({
-            "title": entry.title,
-            "link": entry.link,
-            "published": entry.published
-        })
+    for page in range(1, pages + 1):
+        feed_url = f"{base_url}?paged={page}"
+        feed = feedparser.parse(feed_url)
+
+        # Stop if no entries are found
+        if not feed.entries:
+            print(f"No entries found on page {page}. Stopping.")
+            break
+
+        for entry in feed.entries:
+            articles.append({
+                "title": entry.title,
+                "link": entry.link,
+                "published": entry.published
+            })
 
     return pd.DataFrame(articles)
 
-# Function to save data locally
+# Function to scrape TechCrunch website pages
+def scrape_techcrunch_pages(max_pages=5):
+    base_url = "https://techcrunch.com/startups/"
+    articles = []
+
+    for page in range(1, max_pages + 1):
+        url = f"{base_url}page/{page}/"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            print(f"Failed to fetch page {page}. Status code: {response.status_code}")
+            break
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for item in soup.find_all("div", class_="post-block"):
+            title = item.find("h2", class_="post-block__title").get_text(strip=True) if item.find("h2", class_="post-block__title") else "N/A"
+            link = item.find("a", href=True)["href"] if item.find("a", href=True) else "N/A"
+            date = item.find("time")["datetime"] if item.find("time") else "N/A"
+            articles.append({"title": title, "link": link, "date": date})
+
+    return pd.DataFrame(articles)
+
+# Function to save data locally with deduplication
 def save_data_locally(data, filename="techcrunch_startups.csv"):
     if os.path.exists(filename):
         existing_data = pd.read_csv(filename)
@@ -31,17 +67,13 @@ def save_data_locally(data, filename="techcrunch_startups.csv"):
         data.to_csv(filename, index=False)
     print(f"Data saved to {filename}")
 
-# Function to load data
-def load_data(filename="techcrunch_startups.csv"):
-    try:
-        return pd.read_csv(filename)
-    except FileNotFoundError:
-        return pd.DataFrame()
+# Function to schedule periodic scraping
+def schedule_scraping():
+    schedule.every().day.at("10:00").do(lambda: save_data_locally(scrape_techcrunch_rss(pages=5)))
 
-# Summarization function
-def summarize_text(text):
-    summarizer = pipeline("summarization")
-    return summarizer(text, max_length=50, min_length=10, do_sample=False)[0]["summary_text"]
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 # Streamlit app
 def main():
@@ -49,11 +81,11 @@ def main():
 
     # Button to scrape data
     if st.button("Scrape Latest Data"):
-        scraped_data = scrape_techcrunch_rss()
+        scraped_data = scrape_techcrunch_rss(pages=5)
         if not scraped_data.empty:
             save_data_locally(scraped_data)
             st.success("Data scraped and updated successfully!")
-            st.session_state["data_updated"] = True  # Set session state to trigger UI refresh
+            st.session_state["data_updated"] = True
         else:
             st.warning("No new data found.")
 
