@@ -23,10 +23,8 @@ TechCrunch Startup Discovery Dashboard is a web application that scrapes and ana
 ## Dashboard
 
 * Search and Filter:
-
-- Search articles by keywords.
-
-- Filter articles by publication date.
+  * Search articles by keywords.
+  * Filter articles by publication date.
 
 * Summarization: Generate concise summaries for article titles.
 
