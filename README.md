@@ -8,99 +8,105 @@ TechCrunch Startup Discovery Dashboard is a web application that scrapes and ana
 
 ## Data Scraping
 
-RSS Feed Scraping: Collect articles from TechCrunch's startup RSS feed.
+* RSS Feed Scraping: Collect articles from TechCrunch's startup RSS feed.
 
-Website Scraping: Retrieve additional articles directly from TechCrunch's startup section.
+* Website Scraping: Retrieve additional articles directly from TechCrunch's startup section.
 
-Pagination Support: Scrape multiple pages for a more extensive dataset.
+* Pagination Support: Scrape multiple pages for a more extensive dataset.
 
 ## Data Management
 
-Storage: Save scraped data locally as a CSV file.
+* Storage: Save scraped data locally as a CSV file.
 
-Deduplication: Ensure no duplicate articles are saved.
+* Deduplication: Ensure no duplicate articles are saved.
 
 ## Dashboard
 
-Search and Filter:
+* Search and Filter:
 
-Search articles by keywords.
+- Search articles by keywords.
 
-Filter articles by publication date.
+- Filter articles by publication date.
 
-Summarization: Generate concise summaries for article titles.
+* Summarization: Generate concise summaries for article titles.
 
-Sentiment Analysis: Analyze the sentiment of article titles.
+* Sentiment Analysis: Analyze the sentiment of article titles.
 
-Knowledge Graph: Build and visualize relationships between keywords and articles.
+* Knowledge Graph: Build and visualize relationships between keywords and articles.
 
-Visualization: Display publication trends with line charts.
+* Visualization: Display publication trends with line charts.
 
-Download Data: Export the dataset as a CSV file.
+* Download Data: Export the dataset as a CSV file.
 
 # Installation
 
 ## Requirements
 
-Python 3.8 or later
+* Python 3.8 or later
 
-Pip (Python package manager)
+* Pip (Python package manager)
 
 ## Dependencies
 
 The required libraries are listed in requirements.txt. These include:
 
-beautifulsoup4
+* beautifulsoup4
 
-pandas
+* pandas
 
-streamlit
+* streamlit
 
-feedparser
+* feedparser
 
-transformers
+* transformers
 
-torch
+* torch
 
-schedule
+* schedule
 
-networkx
+* networkx
 
-matplotlib
+* matplotlib
 
-##Steps
+## Steps
 
-Clone the repository:
+1. Clone the repository:
 
 git clone https://github.com/your-username/techcrunch-dashboard.git
 cd techcrunch-dashboard
 
-Install dependencies:
+2. Install dependencies:
 
-``` pip install -r requirements.txt
+``` console
+pip install -r requirements.txt
 ```
 Run the Streamlit app:
 
-``` streamlit run app.py
+``` console
+streamlit run app.py
 ```
 
-Access the app in your browser at http://localhost:8501.
+3. Access the app in your browser at 
 
-Deployment
+```console
+http://localhost:8501.
+```
 
-Using Streamlit Community Cloud
+# Deployment
 
-Push the project to a public GitHub repository.
+## Using Streamlit Community Cloud
 
-Go to Streamlit Community Cloud.
+1.Push the project to a public GitHub repository.
 
-Log in and create a new app.
+2. Go to Streamlit Community Cloud.
 
-Select the repository and branch containing app.py.
+3. Log in and create a new app.
 
-Deploy the app. The URL will be generated automatically.
+4. Select the repository and branch containing app.py.
 
-Docker Deployment
+5. Deploy the app. The URL will be generated automatically.
+
+## Docker Deployment
 
 Create a Dockerfile:
 
@@ -119,49 +125,50 @@ docker run -p 8501:8501 techcrunch-dashboard
 ```
 
 Access the app at 
-``` http://localhost:8501.
+``` console
+http://localhost:8501.
 ```
 
 # Usage
 
-Scrape Data: Use the "Scrape Latest Data" button to fetch articles.
+1. Scrape Data: Use the "Scrape Latest Data" button to fetch articles.
 
-Search and Filter:
+2. Search and Filter:
 
-Enter keywords to search for specific startups.
+* Enter keywords to search for specific startups.
 
-Use the date filter to narrow down articles by publication date.
+* Use the date filter to narrow down articles by publication date.
 
-Summarize and Analyze:
+3. Summarize and Analyze:
 
-View summarized titles of articles.
+* View summarized titles of articles.
 
-Analyze the sentiment of article titles.
+* Analyze the sentiment of article titles.
 
-Visualize Trends: Use the line chart to observe publication trends.
+4. Visualize Trends: Use the line chart to observe publication trends.
 
-Download Data: Export the dataset as a CSV file for offline analysis.
+5. Download Data: Export the dataset as a CSV file for offline analysis.
 
 # Architecture
 
-## Data Ingestion:
+## 1. Data Ingestion:
 
-scrape_techcrunch_rss: Fetch articles from the RSS feed.
+* scrape_techcrunch_rss: Fetch articles from the RSS feed.
 
-scrape_techcrunch_pages: Scrape articles from TechCrunch's website.
+* scrape_techcrunch_pages: Scrape articles from TechCrunch's website.
 
-## Data Storage:
+## 2. Data Storage:
 
-Save articles locally in CSV format.
+* Save articles locally in CSV format.
 
-Deduplicate data based on article links.
+* Deduplicate data based on article links.
 
-## Dashboard:
+## 3. Dashboard:
 
-Streamlit app for interaction, visualization, and analysis.
+* Streamlit app for interaction, visualization, and analysis.
 
-## Advanced Features:
+## 4. Advanced Features:
 
-Summarization and sentiment analysis using Hugging Face Transformers.
+* Summarization and sentiment analysis using Hugging Face Transformers.
 
-Knowledge graph construction using NetworkX.
+* Knowledge graph construction using NetworkX.
