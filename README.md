@@ -38,7 +38,7 @@ Visualization: Display publication trends with line charts.
 
 Download Data: Export the dataset as a CSV file.
 
-#Installation
+# Installation
 
 ## Requirements
 
@@ -46,7 +46,7 @@ Python 3.8 or later
 
 Pip (Python package manager)
 
-##Dependencies
+## Dependencies
 
 The required libraries are listed in requirements.txt. These include:
 
