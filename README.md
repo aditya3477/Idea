@@ -1,12 +1,12 @@
 # Idea
 
-#TechCrunch Startup Discovery Dashboard
+# TechCrunch Startup Discovery Dashboard
 
 TechCrunch Startup Discovery Dashboard is a web application that scrapes and analyzes startup-related articles from TechCrunch's RSS feed and website. The dashboard provides tools for searching, filtering, summarizing, and visualizing data, making it an essential tool for startup enthusiasts and researchers.
 
-#Features
+# Features
 
-##Data Scraping
+## Data Scraping
 
 RSS Feed Scraping: Collect articles from TechCrunch's startup RSS feed.
 
@@ -14,13 +14,13 @@ Website Scraping: Retrieve additional articles directly from TechCrunch's startu
 
 Pagination Support: Scrape multiple pages for a more extensive dataset.
 
-##Data Management
+## Data Management
 
 Storage: Save scraped data locally as a CSV file.
 
 Deduplication: Ensure no duplicate articles are saved.
 
-##Dashboard
+## Dashboard
 
 Search and Filter:
 
@@ -40,7 +40,7 @@ Download Data: Export the dataset as a CSV file.
 
 #Installation
 
-##Requirements
+## Requirements
 
 Python 3.8 or later
 
@@ -77,11 +77,12 @@ cd techcrunch-dashboard
 
 Install dependencies:
 
-pip install -r requirements.txt
-
+``` pip install -r requirements.txt
+```
 Run the Streamlit app:
 
-streamlit run app.py
+``` streamlit run app.py
+```
 
 Access the app in your browser at http://localhost:8501.
 
@@ -103,21 +104,25 @@ Docker Deployment
 
 Create a Dockerfile:
 
-FROM python:3.9
+``` FROM python:3.9
 WORKDIR /app
 COPY . /app
 RUN pip install -r requirements.txt
 EXPOSE 8501
 CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
 
 Build and run the Docker container:
 
-docker build -t techcrunch-dashboard .
+``` docker build -t techcrunch-dashboard .
 docker run -p 8501:8501 techcrunch-dashboard
+```
 
-Access the app at http://localhost:8501.
+Access the app at 
+``` http://localhost:8501.
+```
 
-#Usage
+# Usage
 
 Scrape Data: Use the "Scrape Latest Data" button to fetch articles.
 
@@ -137,25 +142,25 @@ Visualize Trends: Use the line chart to observe publication trends.
 
 Download Data: Export the dataset as a CSV file for offline analysis.
 
-#Architecture
+# Architecture
 
-Data Ingestion:
+## Data Ingestion:
 
 scrape_techcrunch_rss: Fetch articles from the RSS feed.
 
 scrape_techcrunch_pages: Scrape articles from TechCrunch's website.
 
-Data Storage:
+## Data Storage:
 
 Save articles locally in CSV format.
 
 Deduplicate data based on article links.
 
-Dashboard:
+## Dashboard:
 
 Streamlit app for interaction, visualization, and analysis.
 
-Advanced Features:
+## Advanced Features:
 
 Summarization and sentiment analysis using Hugging Face Transformers.
 
