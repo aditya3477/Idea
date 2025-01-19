@@ -1,4 +1,3 @@
-# Import libraries
 import os
 import requests
 import pandas as pd
@@ -10,7 +9,7 @@ import schedule
 from bs4 import BeautifulSoup
 import networkx as nx
 import matplotlib.pyplot as plt
-import torch
+import random
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
@@ -80,17 +79,22 @@ def load_data(filename="techcrunch_startups.csv"):
 
 # Summarization agent
 def summarize_text(text):
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6", revision="a4f8f3e", device=0 if torch.cuda.is_available() else -1)
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
     try:
         input_length = len(text.split())
-        max_length = max(10, min(50, input_length * 2 // 3))  # Adjust max_length based on input length
-        return summarizer(text, max_length=max_length, min_length=max(5, input_length // 3), do_sample=False)[0]["summary_text"]
+        max_length = max(10, min(50, input_length * 2 // 3))
+        return summarizer(
+            text,
+            max_length=max_length,
+            min_length=max(5, input_length // 3),
+            do_sample=False
+        )[0]["summary_text"]
     except Exception:
         return "Summary not available."
 
 # Sentiment analysis agent
 def analyze_sentiment(text):
-    sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=0 if torch.cuda.is_available() else -1)
+    sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
     try:
         result = sentiment_analyzer(text)[0]
         return f"{result['label']} (Confidence: {result['score']:.2f})"
@@ -112,6 +116,21 @@ def visualize_knowledge_graph(graph):
     pos = nx.spring_layout(graph)
     nx.draw(graph, pos, with_labels=True, node_size=50, font_size=8)
     plt.show()
+
+# Risk & Viability Analysis Agent
+def analyze_risk_and_viability(data):
+    risk_scores = []
+    for title in data['title']:
+        risk_score = random.uniform(0, 1)  # Simulated risk score for demonstration
+        risk_scores.append(risk_score)
+    data['risk_score'] = risk_scores
+    return data
+
+# Recommendation & Reporting Agent
+def generate_recommendations(data):
+    top_articles = data.sort_values(by='risk_score', ascending=False).head(5)
+    recommendations = top_articles[['title', 'risk_score', 'link']]
+    return recommendations
 
 # Function to schedule periodic scraping
 def schedule_scraping():
@@ -147,6 +166,17 @@ def main():
     else:
         st.write("### Latest Startups")
         st.dataframe(data)
+
+        # Risk and viability analysis
+        if st.checkbox("Run Risk & Viability Analysis"):
+            data = analyze_risk_and_viability(data)
+            st.write(data[['title', 'risk_score']])
+
+        # Recommendations
+        if st.checkbox("Generate Recommendations"):
+            recommendations = generate_recommendations(data)
+            st.write("### Top Recommendations")
+            st.dataframe(recommendations)
 
         # Summarization
         if st.checkbox("Show Summaries"):
