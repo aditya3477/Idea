@@ -9,6 +9,7 @@ import schedule
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+import feedparser
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
