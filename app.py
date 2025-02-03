@@ -170,7 +170,12 @@ def main():
         # Filter by date range
         if "published" in data.columns:
             data['published'] = pd.to_datetime(data['published'], errors='coerce')
-            start_date, end_date = st.date_input("Select Date Range", value=[pd.to_datetime('2023-01-01'), pd.to_datetime('today')], key='date_range', format='YYYY-MM-DD')
+            date_range = st.date_input("Select Date Range", value=[pd.to_datetime('2023-01-01'), pd.to_datetime('today')], key='date_range')
+            if len(date_range) == 2:
+                start_date, end_date = date_range
+                filtered_data = data[(data['published'] >= pd.Timestamp(start_date)) & (data['published'] <= pd.Timestamp(end_date))]
+                st.write("### Filtered Results")
+                st.dataframe(filtered_data)
             if start_date and end_date:
                 filtered_data = data[(data['published'] >= pd.Timestamp(start_date)) & (data['published'] <= pd.Timestamp(end_date))]
                 st.write("### Filtered Results")
