@@ -26,7 +26,7 @@ def scrape_techcrunch_rss(pages=5, start_date=None, end_date=None):
             break
 
         for entry in feed.entries:
-            entry_date = pd.to_datetime(entry.published, errors='coerce')
+            entry_date = pd.to_datetime(entry.published, errors='coerce').tz_localize(None)
             if start_date and end_date and (entry_date < start_date or entry_date > end_date):
                 continue
             articles.append({
@@ -148,7 +148,7 @@ def main():
     st.title("TechCrunch Startup Discovery Dashboard")
 
     # Button to scrape data
-    start_date, end_date = st.date_input("Select Date Range for Scraping", value=[pd.to_datetime('2023-01-01').date(), pd.to_datetime('today').date()], key='scrape_date_range')
+    scraped_data = scrape_techcrunch_rss(pages=5, start_date=pd.Timestamp(start_date).tz_localize(None), end_date=pd.Timestamp(end_date).tz_localize(None))
     
     if st.button("Scrape Latest Data"):
         scraped_data = scrape_techcrunch_rss(pages=5, start_date=pd.Timestamp(start_date), end_date=pd.Timestamp(end_date))
