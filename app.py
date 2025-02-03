@@ -10,7 +10,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 import feedparser
-from bs4 import BeautifulSoup
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
@@ -116,7 +115,30 @@ def visualize_knowledge_graph(graph):
     plt.figure(figsize=(12, 8))
     pos = nx.spring_layout(graph)
     nx.draw(graph, pos, with_labels=True, node_size=50, font_size=8)
-    st.pyplot(plt)
+    plt.show()
+
+# Risk & Viability Analysis Agent
+def analyze_risk_and_viability(data):
+    risk_scores = []
+    for title in data['title']:
+        risk_score = random.uniform(0, 1)  # Simulated risk score for demonstration
+        risk_scores.append(risk_score)
+    data['risk_score'] = risk_scores
+    return data
+
+# Recommendation & Reporting Agent
+def generate_recommendations(data, threshold):
+    filtered_data = data[data['risk_score'] >= threshold]
+    recommendations = filtered_data[['title', 'risk_score', 'link']]
+    return recommendations
+    
+# Function to schedule periodic scraping
+def schedule_scraping():
+    schedule.every().day.at("10:00").do(lambda: save_data_locally(scrape_techcrunch_rss(pages=5)))
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 # Streamlit app
 def main():
@@ -132,6 +154,10 @@ def main():
         else:
             st.warning("No new data found.")
 
+    # Check session state and reload data if updated
+    if "data_updated" not in st.session_state:
+        st.session_state["data_updated"] = False
+
     # Load existing data
     data = load_data()
 
@@ -140,6 +166,19 @@ def main():
     else:
         st.write("### Latest Startups")
         st.dataframe(data)
+
+        # Risk and viability analysis
+        if st.checkbox("Run Risk & Viability Analysis"):
+            data = analyze_risk_and_viability(data)
+            st.write(data[['title', 'risk_score']])
+
+        # Recommendations
+        if st.checkbox("Generate Recommendations"):
+            threshold = st.slider("Select Risk Score Threshold", 0.0, 1.0, 0.5, 0.05)
+            recommendations = generate_recommendations(data, threshold)
+            st.write("### Top Recommendations")
+            st.dataframe(recommendations)
+
 
         # Summarization
         if st.checkbox("Show Summaries"):
@@ -155,6 +194,39 @@ def main():
         if st.checkbox("Visualize Knowledge Graph"):
             graph = build_knowledge_graph(data)
             visualize_knowledge_graph(graph)
+
+        # Search functionality
+        search_query = st.text_input("Search for a startup:")
+        if search_query:
+            filtered_data = data[data["title"].str.contains(search_query, case=False, na=False)]
+            if not filtered_data.empty:
+                st.write("### Search Results")
+                st.dataframe(filtered_data)
+            else:
+                st.info("No results found for your search query.")
+
+        # Filter by date
+        if "published" in data.columns:
+            date_filter = st.date_input("Filter by Date")
+            if date_filter:
+                filtered_data = data[data['published'] >= date_filter.strftime('%Y-%m-%d')]
+                st.write("### Filtered Results")
+                st.dataframe(filtered_data)
+
+        # Download functionality
+        csv = data.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Data as CSV",
+            data=csv,
+            file_name="techcrunch_startups.csv",
+            mime="text/csv",
+        )
+
+        # Visualization of publication trends
+        if "published" in data.columns:
+            data['published_date'] = pd.to_datetime(data['published'], errors='coerce')
+            trends = data['published_date'].value_counts().sort_index()
+            st.line_chart(trends)
 
 # Run the app
 if __name__ == "__main__":
