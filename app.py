@@ -12,7 +12,7 @@ import random
 import feedparser
 
 # Function to scrape TechCrunch RSS feed with pagination
-def scrape_techcrunch_rss(pages=5):
+def scrape_techcrunch_rss(pages=5, start_date=None, end_date=None):
     base_url = "https://techcrunch.com/tag/startups/feed/"
     articles = []
 
@@ -26,6 +26,9 @@ def scrape_techcrunch_rss(pages=5):
             break
 
         for entry in feed.entries:
+            entry_date = pd.to_datetime(entry.published, errors='coerce')
+            if start_date and end_date and (entry_date < start_date or entry_date > end_date):
+                continue
             articles.append({
                 "title": entry.title,
                 "link": entry.link,
@@ -167,19 +170,6 @@ def main():
         st.write("### Latest Startups")
         st.dataframe(data)
 
-        # Filter by date range
-        if "published" in data.columns:
-            data['published'] = pd.to_datetime(data['published'], errors='coerce', format='%Y-%m-%d')
-            date_range = st.date_input("Select Date Range", value=[pd.to_datetime('2023-01-01').date(), pd.to_datetime('today').date()], key='date_range')
-            if len(date_range) == 2:
-                start_date, end_date = date_range
-                filtered_data = data[(data['published'] >= pd.Timestamp(start_date)) & (data['published'] <= pd.Timestamp(end_date))]
-                st.write("### Filtered Results")
-                st.dataframe(filtered_data)
-            if start_date and end_date:
-                filtered_data = data[(data['published'] >= pd.Timestamp(start_date)) & (data['published'] <= pd.Timestamp(end_date))]
-                st.write("### Filtered Results")
-                st.dataframe(filtered_data)
 
 
         # Risk and viability analysis
