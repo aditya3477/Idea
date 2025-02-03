@@ -167,6 +167,15 @@ def main():
         st.write("### Latest Startups")
         st.dataframe(data)
 
+        # Filter by date range
+        if "published" in data.columns:
+            data['published'] = pd.to_datetime(data['published'], errors='coerce')
+            start_date, end_date = st.date_input("Select Date Range", [])
+            if start_date and end_date:
+                filtered_data = data[(data['published'] >= pd.Timestamp(start_date)) & (data['published'] <= pd.Timestamp(end_date))]
+                st.write("### Filtered Results")
+                st.dataframe(filtered_data)
+
         # Risk and viability analysis
         if st.checkbox("Run Risk & Viability Analysis"):
             data = analyze_risk_and_viability(data)
