@@ -1,5 +1,4 @@
 # Import libraries
-# Import libraries
 import os
 import requests
 import pandas as pd
@@ -11,6 +10,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 import feedparser
+from bs4 import BeautifulSoup
 
 # Function to scrape TechCrunch RSS feed with pagination
 def scrape_techcrunch_rss(pages=5):
@@ -35,6 +35,32 @@ def scrape_techcrunch_rss(pages=5):
 
     return pd.DataFrame(articles)
 
+# Function to scrape TechCrunch website pages
+def scrape_techcrunch_pages(max_pages=5):
+    base_url = "https://techcrunch.com/startups/"
+    articles = []
+
+    for page in range(1, max_pages + 1):
+        url = f"{base_url}page/{page}/"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            print(f"Failed to fetch page {page}. Status code: {response.status_code}")
+            break
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        for item in soup.find_all("div", class_="post-block"):
+            title = item.find("h2", class_="post-block__title").get_text(strip=True) if item.find("h2", class_="post-block__title") else "N/A"
+            link = item.find("a", href=True)["href"] if item.find("a", href=True) else "N/A"
+            date = item.find("time")["datetime"] if item.find("time") else "N/A"
+            articles.append({"title": title, "link": link, "date": date})
+
+    return pd.DataFrame(articles)
+
 # Function to save data locally with deduplication
 def save_data_locally(data, filename="techcrunch_startups.csv"):
     if os.path.exists(filename):
@@ -52,20 +78,45 @@ def load_data(filename="techcrunch_startups.csv"):
     except FileNotFoundError:
         return pd.DataFrame()
 
-# Risk & Viability Analysis Agent
-def analyze_risk_and_viability(data):
-    risk_scores = []
-    for title in data['title']:
-        risk_score = random.uniform(0, 1)  # Simulated risk score for demonstration
-        risk_scores.append(risk_score)
-    data['risk_score'] = risk_scores
-    return data
+# Summarization agent
+def summarize_text(text):
+    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+    try:
+        input_length = len(text.split())
+        max_length = max(10, min(50, input_length * 2 // 3))
+        return summarizer(
+            text,
+            max_length=max_length,
+            min_length=max(5, input_length // 3),
+            do_sample=False
+        )[0]["summary_text"]
+    except Exception:
+        return "Summary not available."
 
-# Recommendation & Reporting Agent
-def generate_recommendations(data, threshold):
-    filtered_data = data[data['risk_score'] >= threshold]
-    recommendations = filtered_data[['title', 'risk_score', 'link']]
-    return recommendations
+# Sentiment analysis agent
+def analyze_sentiment(text):
+    sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+    try:
+        result = sentiment_analyzer(text)[0]
+        return f"{result['label']} (Confidence: {result['score']:.2f})"
+    except Exception:
+        return "Sentiment analysis failed."
+
+# Knowledge graph agent
+def build_knowledge_graph(data):
+    graph = nx.Graph()
+    for _, row in data.iterrows():
+        graph.add_node(row['title'], type='article', link=row['link'])
+        for keyword in row['title'].split():
+            graph.add_node(keyword, type='keyword')
+            graph.add_edge(row['title'], keyword)
+    return graph
+
+def visualize_knowledge_graph(graph):
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(graph)
+    nx.draw(graph, pos, with_labels=True, node_size=50, font_size=8)
+    st.pyplot(plt)
 
 # Streamlit app
 def main():
@@ -81,10 +132,6 @@ def main():
         else:
             st.warning("No new data found.")
 
-    # Check session state and reload data if updated
-    if "data_updated" not in st.session_state:
-        st.session_state["data_updated"] = False
-
     # Load existing data
     data = load_data()
 
@@ -94,26 +141,20 @@ def main():
         st.write("### Latest Startups")
         st.dataframe(data)
 
-        # Risk and viability analysis
-        if st.checkbox("Run Risk & Viability Analysis"):
-            data = analyze_risk_and_viability(data)
-            st.write(data[['title', 'risk_score']])
+        # Summarization
+        if st.checkbox("Show Summaries"):
+            data['summary'] = data['title'].apply(summarize_text)
+            st.write(data[['title', 'summary']])
 
-        # Recommendations with user-defined threshold
-        if st.checkbox("Generate Recommendations"):
-            threshold = st.slider("Select Risk Score Threshold", 0.0, 1.0, 0.5, 0.05)
-            recommendations = generate_recommendations(data, threshold)
-            st.write("### Top Recommendations")
-            st.dataframe(recommendations)
+        # Sentiment analysis
+        if st.checkbox("Show Sentiment Analysis"):
+            data['sentiment'] = data['title'].apply(analyze_sentiment)
+            st.write(data[['title', 'sentiment']])
 
-        # Download functionality
-        csv = data.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download Data as CSV",
-            data=csv,
-            file_name="techcrunch_startups.csv",
-            mime="text/csv",
-        )
+        # Knowledge graph
+        if st.checkbox("Visualize Knowledge Graph"):
+            graph = build_knowledge_graph(data)
+            visualize_knowledge_graph(graph)
 
 # Run the app
 if __name__ == "__main__":
